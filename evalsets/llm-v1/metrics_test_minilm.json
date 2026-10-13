@@ -1,0 +1,141 @@
+{
+ "chats": 150,
+ "import": {
+  "missing_chats": 0,
+  "turn_count_mismatches": 0
+ },
+ "boundary": {
+  "precision": 0.7595,
+  "recall": 0.9089,
+  "f1": 0.8275,
+  "n_pred": 499,
+  "n_true": 417
+ },
+ "topic_recall": 0.746,
+ "topic_recall_macro": 0.7403,
+ "topic_precision": 0.8182,
+ "hidden_recall": 0.7362,
+ "one_turn_recall": 0.68,
+ "true_topics": 40,
+ "pred_nodes": 128,
+ "truth_hidden_topic_rate": 0.025,
+ "truth_hidden_segment_share": 0.7354,
+ "per_case": {
+  "aside": {
+   "chats": 22,
+   "boundary": {
+    "precision": 0.7742,
+    "recall": 1.0,
+    "f1": 0.8727,
+    "n_pred": 62,
+    "n_true": 48
+   },
+   "topic_recall": 0.7714,
+   "one_turn_recall": 0.68
+  },
+  "clean": {
+   "chats": 61,
+   "boundary": {
+    "precision": 0.7442,
+    "recall": 0.9302,
+    "f1": 0.8269,
+    "n_pred": 215,
+    "n_true": 172
+   },
+   "topic_recall": 0.7382,
+   "one_turn_recall": null
+  },
+  "near": {
+   "chats": 29,
+   "boundary": {
+    "precision": 0.8029,
+    "recall": 0.8397,
+    "f1": 0.8209,
+    "n_pred": 137,
+    "n_true": 131
+   },
+   "topic_recall": 0.7312,
+   "one_turn_recall": null
+  },
+  "return": {
+   "chats": 26,
+   "boundary": {
+    "precision": 0.8026,
+    "recall": 0.9242,
+    "f1": 0.8592,
+    "n_pred": 76,
+    "n_true": 66
+   },
+   "topic_recall": 0.8043,
+   "one_turn_recall": null
+  },
+  "single": {
+   "chats": 12,
+   "boundary": {
+    "precision": 0.0,
+    "recall": 1.0,
+    "f1": 0.0,
+    "n_pred": 9,
+    "n_true": 0
+   },
+   "topic_recall": 0.5,
+   "one_turn_recall": null
+  }
+ },
+ "recall_by_tier": {
+  "complex": {
+   "segments": 295,
+   "topic_recall": 0.6983
+  },
+  "medium": {
+   "segments": 161,
+   "topic_recall": 0.8137
+  },
+  "simple": {
+   "segments": 111,
+   "topic_recall": 0.7748
+  }
+ },
+ "recall_by_topic": {
+  "apartment_rent": 0.5455,
+  "back_pain": 1.0,
+  "baking_bread": 0.9167,
+  "budgeting": 0.8824,
+  "calculus_help": 0.4706,
+  "career_switch": 0.4615,
+  "cover_letter": 0.8333,
+  "credit_card_debt": 0.9583,
+  "database_design": 0.6,
+  "docker_deploy": 0.375,
+  "dog_training": 0.9167,
+  "essay_writing": 0.9167,
+  "flight_booking": 0.5714,
+  "git_workflow": 1.0,
+  "gre_prep": 0.6923,
+  "home_loan": 0.9,
+  "income_tax_india": 0.7778,
+  "indian_curry": 0.5455,
+  "interview_prep": 0.6429,
+  "japan_itinerary": 1.0,
+  "meal_prep": 0.9524,
+  "ml_concepts": 0.6364,
+  "mutual_funds": 0.875,
+  "nutrition_protein": 0.9,
+  "packing_list": 0.3636,
+  "physics_mechanics": 0.4667,
+  "python_errors": 0.1176,
+  "python_packaging": 0.875,
+  "react_frontend": 0.75,
+  "regex_help": 1.0,
+  "resume_writing": 0.6,
+  "running_training": 1.0,
+  "salary_negotiation": 0.8462,
+  "schengen_visa": 0.9,
+  "sleep_issues": 1.0,
+  "sql_queries": 0.7333,
+  "strength_training": 0.9286,
+  "us_visa": 0.3846,
+  "vegan_recipes": 0.4,
+  "wedding_speech": 0.875
+ }
+}

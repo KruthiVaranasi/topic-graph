@@ -87,17 +87,20 @@ The report also breaks results down per case, and its import check counts missin
 
 Thresholds were tuned on the even-numbered chats (`--split tune`) and scored on the odd-numbered ones (`--split test`). Offline mode only: no LLM in the pipeline.
 
-| Metric (test half, 150 chats) | Hashing embedder | LSA embedder | Target |
-|---|---|---|---|
-| Topic recall | 0.603 | 0.494 | ≥ 0.90 |
-| Topic precision | 0.655 | **0.839** ✓ | ≥ 0.80 |
-| Boundary F1 | 0.561 | 0.621 | ≥ 0.75 |
-| Hidden recall | 0.597 | 0.472 | |
-| One-turn recall | 0.400 | 0.280 | |
+| Metric (test half, 150 chats) | Hashing | LSA | **SBERT (MiniLM)** | Target |
+|---|---|---|---|---|
+| Topic recall | 0.603 | 0.494 | **0.746** | ≥ 0.90 |
+| Topic precision | 0.655 | 0.839 ✓ | **0.818** ✓ | ≥ 0.80 |
+| Boundary F1 | 0.561 | 0.621 | **0.828** ✓ | ≥ 0.75 |
+| Hidden recall | 0.597 | 0.472 | **0.736** | |
+| One-turn recall | 0.400 | 0.280 | **0.680** | |
 
-LSA settings: `--embedder lsa --low 0.08 --mid 0.17 --high 0.44 --merge 0.3 --cluster-threshold 0.35`. This is the configuration that follows the product rule (best recall with precision ≥ 0.80). The hashing column shows the best recall/precision balance, because no hashing setting reaches the precision floor.
+Best settings (chosen on the tune half by the product rule: maximum recall with precision ≥ 0.80):
+- SBERT: `--embedder st:minilm --low 0.15 --mid 0.28 --high 0.67 --cluster-threshold 0.35`
+- LSA: `--embedder lsa --low 0.08 --mid 0.17 --high 0.44 --merge 0.3 --cluster-threshold 0.35`
+- Hashing: the best recall/precision balance (`--low 0.02 --mid 0.05 --high 0.14 --cluster-threshold 0.10`), because no hashing setting reaches the precision floor.
 
-**What this says.** Word-based methods plateau well short of the recall target on realistic chats. People don't repeat keywords, so one topic gets split across many nodes: 241 predicted nodes for 40 true topics. That is a recall failure, because a user opening one node misses the others. Loosening the clustering merges unrelated topics and breaks the precision floor. Closing the gap needs semantic similarity: a sentence-embedding model (`--embedder st`, local after a one-time download, which this build environment blocks) and/or the LLM boundary judge and labels (`--llm`). Those are the next experiments.
+**What this says.** Word-based methods plateau on realistic chats because people don't repeat keywords. Sentence-BERT matches meaning, and it still runs locally and for free after a one-time model download. It now **passes the boundary target (0.83) and the precision floor (0.82)**, and lifts recall from 0.49–0.60 to 0.75. The remaining recall gap is mostly topics split across more than one node (128 predicted nodes for 40 true topics). The next steps are a larger embedding model, a second clustering pass that merges nodes with similar labels, or the optional LLM labels (`--llm claude:haiku --budget-usd 1`).
 
 For comparison, the offline template set (`topicgraph synth`, no LLM) scores recall 0.894, precision 0.887 and boundary F1 0.733. Template chats reuse a small vocabulary per topic, so treat them as a plumbing test only.
 
