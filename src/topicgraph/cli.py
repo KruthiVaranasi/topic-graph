@@ -31,7 +31,7 @@ def _config(args) -> PipelineConfig:
 
 
 def _add_pipeline_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--embedder", default="hashing", help="hashing (default, no downloads), st, or st:<model>")
+    p.add_argument("--embedder", default="hashing", help="hashing (default, no downloads), lsa, st, or st:<model>")
     p.add_argument("--llm", default="none", help="none (default), claude, or claude:<model-id> for boundary checks and labels")
     p.add_argument("--no-llm-judge", action="store_true", help="use the LLM for labels only")
     p.add_argument("--no-llm-labels", action="store_true", help="use the LLM for boundary checks only")
