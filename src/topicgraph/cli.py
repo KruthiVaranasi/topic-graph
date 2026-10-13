@@ -21,7 +21,7 @@ def _log(msg: str) -> None:
 
 def _config(args) -> PipelineConfig:
     seg = SegmenterConfig()
-    for name in ("low", "mid", "high"):
+    for name in ("low", "mid", "high", "merge"):
         if getattr(args, name, None) is not None:
             setattr(seg, name, getattr(args, name))
     cfg = PipelineConfig(segmenter=seg)
@@ -39,6 +39,7 @@ def _add_pipeline_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--low", type=float, help="segmenter: below this score always cut")
     p.add_argument("--mid", type=float, help="segmenter: cut point inside the borderline band when no LLM")
     p.add_argument("--high", type=float, help="segmenter: at or above this score never cut")
+    p.add_argument("--merge", type=float, help="segmenter: re-join neighbouring segments at least this similar")
 
 
 def cmd_build(args) -> None:
@@ -113,7 +114,11 @@ def _run_eval(data_dir: Path, args, cfg: PipelineConfig):
     from .evaluation.metrics import score
 
     truth = json.loads((data_dir / "truth.json").read_text(encoding="utf-8"))
-    chats = load_exports([data_dir / "exports"])
+    if getattr(args, "split", "all") != "all":
+        # Deterministic halves by synthetic chat number: tune on one, report on the other.
+        want = 0 if args.split == "tune" else 1
+        truth = {k: v for k, v in truth.items() if int(v["synth_id"].split("-")[1]) % 2 == want}
+    chats = [c for c in load_exports([data_dir / "exports"]) if c.key in truth]
     graph = build_graph(chats, get_embedder(args.embedder), cfg, get_llm(args.llm),
                         not args.no_llm_judge, not args.no_llm_labels)
     return graph, score(graph.segments, truth)
@@ -152,19 +157,21 @@ def cmd_eval(args) -> None:
     if args.sweep:
         rows = []
         grid = lambda s: [float(x) for x in s.split(",")]  # noqa: E731
-        for low, mid, ct in itertools.product(grid(args.sweep_low), grid(args.sweep_mid), grid(args.sweep_cluster)):
+        merges = [None if x == "none" else float(x) for x in args.sweep_merge.split(",")]
+        for low, mid, mg, ct in itertools.product(grid(args.sweep_low), grid(args.sweep_mid), merges, grid(args.sweep_cluster)):
             if mid < low:
                 continue
-            cfg = PipelineConfig(segmenter=SegmenterConfig(low=low, mid=mid, high=mid + (mid - low) * 3), cluster_threshold=ct)
-            _, m = _run_eval(data_dir, args, cfg)
-            rows.append((low, mid, ct, m["topic_recall"], m["topic_precision"], m["boundary"]["f1"]))
-            _log(f"low {low:.2f} mid {mid:.2f} cluster {ct:.2f}: recall {m['topic_recall']:.3f} "
+            seg = SegmenterConfig(low=low, mid=mid, high=mid + (mid - low) * 3, merge=mg)
+            _, m = _run_eval(data_dir, args, PipelineConfig(segmenter=seg, cluster_threshold=ct))
+            rows.append((low, mid, mg, ct, m["topic_recall"], m["topic_precision"], m["boundary"]["f1"]))
+            _log(f"low {low:.2f} mid {mid:.2f} merge {mg} cluster {ct:.2f}: recall {m['topic_recall']:.3f} "
                  f"precision {m['topic_precision']:.3f} boundaryF1 {m['boundary']['f1']:.3f}")
         # Recall first, subject to the precision floor.
-        ok = [r for r in rows if r[4] >= 0.80] or rows
-        best = max(ok, key=lambda r: (r[3], r[5]))
-        print(f"best (max recall with precision >= 0.80): --low {best[0]} --mid {best[1]} --cluster-threshold {best[2]}"
-              f"  recall {best[3]:.3f} precision {best[4]:.3f} boundaryF1 {best[5]:.3f}")
+        ok = [r for r in rows if r[5] >= 0.80] or rows
+        best = max(ok, key=lambda r: (r[4], r[6]))
+        merge_flag = f" --merge {best[2]}" if best[2] is not None else ""
+        print(f"best (max recall with precision >= 0.80): --low {best[0]} --mid {best[1]}{merge_flag} "
+              f"--cluster-threshold {best[3]}  recall {best[4]:.3f} precision {best[5]:.3f} boundaryF1 {best[6]:.3f}")
         return
     graph, m = _run_eval(data_dir, args, _config(args))
     _print_metrics(m)
@@ -223,6 +230,9 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--sweep-low", default="0.02,0.04,0.06")
     p.add_argument("--sweep-mid", default="0.04,0.06,0.08,0.10")
     p.add_argument("--sweep-cluster", default="0.06,0.08,0.10,0.14")
+    p.add_argument("--sweep-merge", default="none", help="comma list of merge thresholds, or none")
+    p.add_argument("--split", choices=["all", "tune", "test"], default="all",
+                   help="score on all chats, or on the even (tune) / odd (test) half")
     _add_pipeline_args(p)
     p.set_defaults(func=cmd_eval)
 

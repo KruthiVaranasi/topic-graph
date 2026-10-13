@@ -59,6 +59,35 @@ class HashingEmbedder:
         return _normalize(m)
 
 
+class LSAEmbedder:
+    """Latent semantic analysis on top of the hashing TF-IDF features (numpy only).
+
+    Learns which terms co-occur across the user's own chats ("visa", "consulate",
+    "ds160", "interview"), so two turns about the same subject match even when
+    they share no exact words. Still fully local; no model download.
+    """
+
+    def __init__(self, dim: int = 4096, k: int = 256):
+        self.base = HashingEmbedder(dim=dim)
+        self.k = k
+        self.components: np.ndarray | None = None
+
+    def fit(self, texts: Sequence[str]) -> "LSAEmbedder":
+        self.base.fit(texts)
+        x = self.base.embed(texts)
+        # Eigenvectors of X^T X are the right singular vectors of X.
+        vals, vecs = np.linalg.eigh((x.T @ x).astype(np.float64))
+        order = np.argsort(vals)[::-1][: self.k]
+        self.components = vecs[:, order].astype(np.float32)
+        return self
+
+    def embed(self, texts: Sequence[str]) -> np.ndarray:
+        x = self.base.embed(texts)
+        if self.components is None:
+            return x
+        return _normalize(x @ self.components)
+
+
 class SentenceTransformerEmbedder:
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         from sentence_transformers import SentenceTransformer
@@ -77,8 +106,12 @@ class SentenceTransformerEmbedder:
 def get_embedder(name: str = "hashing") -> Embedder:
     if name == "hashing":
         return HashingEmbedder()
+    if name == "lsa":
+        return LSAEmbedder()
+    if name.startswith("lsa:"):
+        return LSAEmbedder(k=int(name[4:]))
     if name.startswith("st:"):
         return SentenceTransformerEmbedder(name[3:])
     if name == "st":
         return SentenceTransformerEmbedder()
-    raise ValueError(f"unknown embedder {name!r} (use 'hashing', 'st' or 'st:<model>')")
+    raise ValueError(f"unknown embedder {name!r} (use 'hashing', 'lsa', 'lsa:<k>', 'st' or 'st:<model>')")

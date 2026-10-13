@@ -39,6 +39,7 @@ class SegmenterConfig:
     cue_penalty: float = 0.10
     min_tokens: int = 3  # user turns with fewer content tokens count as follow-ups
     user_weight: float = 2.0  # the user message carries more topic signal than the reply
+    merge: float | None = None  # re-join neighbouring segments whose centroids are at least this similar
 
 
 class LLMBoundaryJudge:
@@ -85,6 +86,24 @@ def turn_vectors(turns: list[Turn], embedder: Embedder, user_weight: float) -> n
     return v / n
 
 
+def _merge_similar(starts: list[int], vecs: np.ndarray, threshold: float) -> list[int]:
+    """Drop a cut when the segments on both sides of it turn out to be about the same thing."""
+    def centroid(a: int, b: int) -> np.ndarray:
+        c = vecs[a:b].sum(axis=0)
+        return c / (np.linalg.norm(c) or 1.0)
+
+    merged = True
+    while merged and len(starts) > 1:
+        merged = False
+        bounds = starts + [len(vecs)]
+        sims = [float(centroid(bounds[i - 1], bounds[i]) @ centroid(bounds[i], bounds[i + 1])) for i in range(1, len(starts))]
+        best = int(np.argmax(sims))
+        if sims[best] >= threshold:
+            del starts[best + 1]
+            merged = True
+    return starts
+
+
 def segment_chat(
     chat: Chat,
     embedder: Embedder,
@@ -121,6 +140,8 @@ def segment_chat(
             centroid = v.copy()
         else:
             centroid = centroid + v
+    if cfg.merge is not None and len(starts) > 1:
+        starts = _merge_similar(starts, vecs, cfg.merge)
     bounds = starts + [len(turns)]
     segments = []
     for s, e in zip(bounds, bounds[1:]):
