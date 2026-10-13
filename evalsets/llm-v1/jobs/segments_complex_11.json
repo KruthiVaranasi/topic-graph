@@ -1,0 +1,52 @@
+[
+ {
+  "id": "synth-0298/s0",
+  "topic": "Python packaging",
+  "brief": "pip, virtualenvs, dependencies and publishing Python packages",
+  "n_turns": 8,
+  "persona": "a freelance designer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "how-to: wants step-by-step instructions to do something",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0298/s1",
+  "topic": "Running training",
+  "brief": "training for a run or race",
+  "n_turns": 4,
+  "persona": "a freelance designer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0299/s0",
+  "topic": "Strength training",
+  "brief": "gym and lifting programs",
+  "n_turns": 8,
+  "persona": "a freelance designer",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "how-to: wants step-by-step instructions to do something",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0299/s1",
+  "topic": "Schengen visa",
+  "brief": "applying for a Schengen visa",
+  "n_turns": 3,
+  "persona": "a freelance designer",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0299/s2",
+  "topic": "US visa",
+  "brief": "US visa interviews and applications",
+  "n_turns": 7,
+  "persona": "a freelance designer",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ }
+]

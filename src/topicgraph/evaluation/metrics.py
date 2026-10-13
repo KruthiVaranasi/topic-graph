@@ -78,6 +78,7 @@ def score(segments: list[Segment], truth: dict[str, dict], tolerance: int = 1) -
     # Boundaries and recall, overall and per case.
     by_case: dict[str, Counter] = defaultdict(Counter)
     recall_by_topic: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    recall_by_tier: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     for key, t in truth.items():
         case = t["case"]
         c = by_case[case]
@@ -86,7 +87,8 @@ def score(segments: list[Segment], truth: dict[str, dict], tolerance: int = 1) -
         c["b_hits"] += match_boundaries(pred_b, true_b, tolerance)
         c["b_pred"] += len(pred_b)
         c["b_true"] += len(true_b)
-        for seg in t["segments"]:
+        tiers = (t.get("meta") or {}).get("tiers") or [None] * len(t["segments"])
+        for seg, tier in zip(t["segments"], tiers):
             span = range(seg["start"], seg["end"])
             target = topic_node.get(seg["topic"])
             hit = sum(turn_node[key][i] == target for i in span) * 2 >= len(span)
@@ -100,6 +102,9 @@ def score(segments: list[Segment], truth: dict[str, dict], tolerance: int = 1) -
                 c["tiny_n"] += 1
             recall_by_topic[seg["topic"]][0] += hit
             recall_by_topic[seg["topic"]][1] += 1
+            if tier:
+                recall_by_tier[tier][0] += hit
+                recall_by_tier[tier][1] += 1
 
     # Precision over predicted segments.
     p_hit = p_n = 0
@@ -138,6 +143,8 @@ def score(segments: list[Segment], truth: dict[str, dict], tolerance: int = 1) -
         "truth_hidden_topic_rate": ratio(len(true_topics - title_topics), len(true_topics)),
         "truth_hidden_segment_share": ratio(total["h_n"], total["r_n"]),
         "per_case": per_case,
+        "recall_by_tier": {k: {"segments": n, "topic_recall": ratio(h, n)} for k, (h, n) in sorted(recall_by_tier.items())},
+        "recall_by_topic": {k: ratio(h, n) for k, (h, n) in sorted(recall_by_topic.items())},
     }
 
 

@@ -93,6 +93,22 @@ def cmd_synth(args) -> None:
     _log(f"wrote {len(truth)} chats ({gen.name}) to {out}")
 
 
+def cmd_batch(args) -> None:
+    from .synth import batch
+
+    if args.step == "plan":
+        counts = batch.plan(args.out, args.n, args.seed, args.batch_size)
+        _log(f"planned segments per tier: {counts}; job files in {Path(args.out) / 'jobs'}")
+    elif args.step == "check":
+        _, problems = batch.validate_segments(args.out)
+        print("\n".join(problems) or "all segments present and valid")
+    elif args.step == "transitions":
+        _log(f"wrote {batch.transition_jobs(args.out)} transition jobs")
+    else:
+        chats, truth = batch.assemble(args.out)
+        _log(f"assembled {len(chats)} chats into {Path(args.out) / 'exports'}")
+
+
 def _run_eval(data_dir: Path, args, cfg: PipelineConfig):
     from .evaluation.metrics import score
 
@@ -123,6 +139,12 @@ def _print_metrics(m: dict) -> None:
         b = c["boundary"]
         cuts = f"{b['n_pred']}/{b['n_true']}"
         print(f"{case:<9} {c['chats']:>5}  {b['f1']:>10.3f}  {cuts:>14}  {c['topic_recall']:.3f}  {tiny:>8}")
+    if m.get("recall_by_tier"):
+        print("\ngeneration tier  segments  recall")
+        for tier, r in m["recall_by_tier"].items():
+            print(f"{tier:<16} {r['segments']:>8}  {r['topic_recall']:.3f}")
+    worst = sorted(m["recall_by_topic"].items(), key=lambda kv: kv[1])[:5]
+    print("\nlowest-recall topics: " + ", ".join(f"{k} {v:.2f}" for k, v in worst))
 
 
 def cmd_eval(args) -> None:
@@ -184,6 +206,14 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--template-transitions", action="store_true", help="cue-phrase transitions even with an LLM")
     p.add_argument("--workers", type=int, default=8, help="parallel LLM calls")
     p.set_defaults(func=cmd_synth)
+
+    p = sub.add_parser("batch", help="plan / check / transitions / assemble an externally generated eval set")
+    p.add_argument("step", choices=["plan", "check", "transitions", "assemble"])
+    p.add_argument("--out", default="data/synth-llm")
+    p.add_argument("--n", type=int, default=300)
+    p.add_argument("--seed", type=int, default=7)
+    p.add_argument("--batch-size", type=int, default=25)
+    p.set_defaults(func=cmd_batch)
 
     p = sub.add_parser("eval", help="run the pipeline on a synthetic set and score it")
     p.add_argument("--data", default="data/synth")

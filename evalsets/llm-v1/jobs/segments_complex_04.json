@@ -1,0 +1,502 @@
+[
+ {
+  "id": "synth-0100/s1",
+  "topic": "Cover letters",
+  "brief": "writing a cover letter for a job application",
+  "n_turns": 5,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "planning: wants help putting together a plan or schedule",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0100/s3",
+  "topic": "GRE preparation",
+  "brief": "studying for the GRE",
+  "n_turns": 7,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0100/s4",
+  "topic": "Docker deployment",
+  "brief": "containers, images and deploying services",
+  "n_turns": 3,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "comparison: deciding between two or three specific options",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0101/s0",
+  "topic": "Career switch",
+  "brief": "changing careers or roles",
+  "n_turns": 10,
+  "persona": "a working parent",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0102/s0",
+  "topic": "Packing list",
+  "brief": "what to pack for a trip",
+  "n_turns": 6,
+  "persona": "a backend software engineer",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "planning: wants help putting together a plan or schedule",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0103/s0",
+  "topic": "React frontend",
+  "brief": "React components, state and hooks",
+  "n_turns": 3,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0103/s2",
+  "topic": "Resume writing",
+  "brief": "improving a CV or resume",
+  "n_turns": 8,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0103/s3",
+  "topic": "Cover letters",
+  "brief": "writing a cover letter for a job application",
+  "n_turns": 5,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0104/s0",
+  "topic": "Python errors",
+  "brief": "debugging a Python traceback or exception",
+  "n_turns": 6,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0104/s1",
+  "topic": "Calculus",
+  "brief": "derivatives, integrals and limits",
+  "n_turns": 7,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0104/s2",
+  "topic": "Physics mechanics",
+  "brief": "Newtonian mechanics problems",
+  "n_turns": 8,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0105/s0",
+  "topic": "Calculus",
+  "brief": "derivatives, integrals and limits",
+  "n_turns": 4,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "comparison: deciding between two or three specific options",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0105/s1",
+  "topic": "Packing list",
+  "brief": "what to pack for a trip",
+  "n_turns": 7,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0105/s2",
+  "topic": "Running training",
+  "brief": "training for a run or race",
+  "n_turns": 8,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "recommendation: asks what they should pick or do in their situation",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0105/s3",
+  "topic": "Renting an apartment",
+  "brief": "leases, landlords and rent",
+  "n_turns": 5,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "quick fact: a short factual question, then a follow-up or two",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0105/s4",
+  "topic": "Database schema design",
+  "brief": "designing tables, keys and normalization",
+  "n_turns": 4,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0106/s1",
+  "topic": "Docker deployment",
+  "brief": "containers, images and deploying services",
+  "n_turns": 4,
+  "persona": "a freelance designer",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0106/s2",
+  "topic": "Strength training",
+  "brief": "gym and lifting programs",
+  "n_turns": 4,
+  "persona": "a freelance designer",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0107/s2",
+  "topic": "Sleep problems",
+  "brief": "insomnia and sleep habits",
+  "n_turns": 3,
+  "persona": "an undergraduate student",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0107/s3",
+  "topic": "Salary negotiation",
+  "brief": "negotiating an offer or a raise",
+  "n_turns": 2,
+  "persona": "an undergraduate student",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0108/s3",
+  "topic": "Weekly meal prep",
+  "brief": "planning and batch-cooking meals for the week",
+  "n_turns": 8,
+  "persona": "a working parent",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0109/s3",
+  "topic": "Personal budgeting",
+  "brief": "monthly budgets and saving",
+  "n_turns": 5,
+  "persona": "a PhD researcher",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0110/s6",
+  "topic": "Packing list",
+  "brief": "what to pack for a trip",
+  "n_turns": 3,
+  "persona": "a working parent",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0110/s7",
+  "topic": "Baking bread",
+  "brief": "baking bread and sourdough",
+  "n_turns": 8,
+  "persona": "a working parent",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0111/s1",
+  "topic": "Sleep problems",
+  "brief": "insomnia and sleep habits",
+  "n_turns": 8,
+  "persona": "a PhD researcher",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "comparison: deciding between two or three specific options",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0112/s0",
+  "topic": "Interview preparation",
+  "brief": "preparing for job interviews",
+  "n_turns": 7,
+  "persona": "a freelance designer",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "recommendation: asks what they should pick or do in their situation",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0112/s1",
+  "topic": "Essay writing",
+  "brief": "structuring and writing essays",
+  "n_turns": 5,
+  "persona": "a freelance designer",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0112/s2",
+  "topic": "Protein and nutrition",
+  "brief": "diet, macros and protein intake",
+  "n_turns": 3,
+  "persona": "a freelance designer",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0113/s0",
+  "topic": "Career switch",
+  "brief": "changing careers or roles",
+  "n_turns": 8,
+  "persona": "a PhD researcher",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0115/s2",
+  "topic": "Python packaging",
+  "brief": "pip, virtualenvs, dependencies and publishing Python packages",
+  "n_turns": 3,
+  "persona": "a working parent",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0116/s0",
+  "topic": "Indian curry",
+  "brief": "cooking Indian curries and dal",
+  "n_turns": 10,
+  "persona": "a PhD researcher",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0117/s0",
+  "topic": "Sleep problems",
+  "brief": "insomnia and sleep habits",
+  "n_turns": 7,
+  "persona": "a backend software engineer",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "how-to: wants step-by-step instructions to do something",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0117/s1",
+  "topic": "Personal budgeting",
+  "brief": "monthly budgets and saving",
+  "n_turns": 4,
+  "persona": "a backend software engineer",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0117/s2",
+  "topic": "Renting an apartment",
+  "brief": "leases, landlords and rent",
+  "n_turns": 7,
+  "persona": "a backend software engineer",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0118/s2",
+  "topic": "Salary negotiation",
+  "brief": "negotiating an offer or a raise",
+  "n_turns": 7,
+  "persona": "a working parent",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "quick fact: a short factual question, then a follow-up or two",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0119/s1",
+  "topic": "Physics mechanics",
+  "brief": "Newtonian mechanics problems",
+  "n_turns": 4,
+  "persona": "an undergraduate student",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0119/s2",
+  "topic": "Resume writing",
+  "brief": "improving a CV or resume",
+  "n_turns": 7,
+  "persona": "an undergraduate student",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0120/s0",
+  "topic": "Regular expressions",
+  "brief": "writing regex patterns",
+  "n_turns": 5,
+  "persona": "a PhD researcher",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0121/s1",
+  "topic": "Home loan",
+  "brief": "mortgages and home loans",
+  "n_turns": 6,
+  "persona": "a working parent",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "how-to: wants step-by-step instructions to do something",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0121/s2",
+  "topic": "Essay writing",
+  "brief": "structuring and writing essays",
+  "n_turns": 8,
+  "persona": "a working parent",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "quick fact: a short factual question, then a follow-up or two",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0121/s3",
+  "topic": "Salary negotiation",
+  "brief": "negotiating an offer or a raise",
+  "n_turns": 3,
+  "persona": "a working parent",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "comparison: deciding between two or three specific options",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0122/s0",
+  "topic": "Weekly meal prep",
+  "brief": "planning and batch-cooking meals for the week",
+  "n_turns": 5,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "recommendation: asks what they should pick or do in their situation",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0122/s1",
+  "topic": "Cover letters",
+  "brief": "writing a cover letter for a job application",
+  "n_turns": 5,
+  "persona": "an undergraduate student",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0123/s1",
+  "topic": "Strength training",
+  "brief": "gym and lifting programs",
+  "n_turns": 7,
+  "persona": "a backend software engineer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0123/s2",
+  "topic": "Essay writing",
+  "brief": "structuring and writing essays",
+  "n_turns": 2,
+  "persona": "a backend software engineer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0124/s0",
+  "topic": "SQL queries",
+  "brief": "writing and fixing SQL queries",
+  "n_turns": 6,
+  "persona": "a PhD researcher",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "troubleshooting: something is broken or not working and they describe what they see",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0124/s1",
+  "topic": "Strength training",
+  "brief": "gym and lifting programs",
+  "n_turns": 3,
+  "persona": "a PhD researcher",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0124/s2",
+  "topic": "Indian curry",
+  "brief": "cooking Indian curries and dal",
+  "n_turns": 4,
+  "persona": "a PhD researcher",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "planning: wants help putting together a plan or schedule",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0124/s3",
+  "topic": "Personal budgeting",
+  "brief": "monthly budgets and saving",
+  "n_turns": 4,
+  "persona": "a PhD researcher",
+  "style": "a bit frustrated because a first attempt did not work",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "complex"
+ },
+ {
+  "id": "synth-0125/s0",
+  "topic": "Calculus",
+  "brief": "derivatives, integrals and limits",
+  "n_turns": 2,
+  "persona": "a working parent",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+  "tier": "complex"
+ }
+]

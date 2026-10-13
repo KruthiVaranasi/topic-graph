@@ -1,0 +1,222 @@
+[
+ {
+  "id": "synth-0279/s0",
+  "topic": "Back pain",
+  "brief": "lower back pain and posture",
+  "n_turns": 4,
+  "persona": "a freelance designer",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0279/s1",
+  "topic": "Dog training",
+  "brief": "training a puppy or dog",
+  "n_turns": 6,
+  "persona": "a freelance designer",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "planning: wants help putting together a plan or schedule",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0279/s2",
+  "topic": "Packing list",
+  "brief": "what to pack for a trip",
+  "n_turns": 6,
+  "persona": "a freelance designer",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "how-to: wants step-by-step instructions to do something",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0280/s0",
+  "topic": "GRE preparation",
+  "brief": "studying for the GRE",
+  "n_turns": 5,
+  "persona": "an undergraduate student",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "recommendation: asks what they should pick or do in their situation",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0281/s2",
+  "topic": "Indian income tax",
+  "brief": "Indian income tax filing and regimes",
+  "n_turns": 5,
+  "persona": "a PhD researcher",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0285/s1",
+  "topic": "Interview preparation",
+  "brief": "preparing for job interviews",
+  "n_turns": 5,
+  "persona": "a freelance designer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0285/s2",
+  "topic": "Protein and nutrition",
+  "brief": "diet, macros and protein intake",
+  "n_turns": 6,
+  "persona": "a freelance designer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0285/s3",
+  "topic": "Weekly meal prep",
+  "brief": "planning and batch-cooking meals for the week",
+  "n_turns": 4,
+  "persona": "a freelance designer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "sanity check: already has an answer in mind and wants it confirmed",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0286/s2",
+  "topic": "Japan trip itinerary",
+  "brief": "planning a trip to Japan",
+  "n_turns": 4,
+  "persona": "a backend software engineer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "comparison: deciding between two or three specific options",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0287/s0",
+  "topic": "Wedding speech",
+  "brief": "writing a wedding toast",
+  "n_turns": 6,
+  "persona": "a working parent",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0287/s1",
+  "topic": "Essay writing",
+  "brief": "structuring and writing essays",
+  "n_turns": 5,
+  "persona": "a working parent",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "planning: wants help putting together a plan or schedule",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0287/s2",
+  "topic": "Home loan",
+  "brief": "mortgages and home loans",
+  "n_turns": 6,
+  "persona": "a working parent",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "recommendation: asks what they should pick or do in their situation",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0288/s0",
+  "topic": "Cover letters",
+  "brief": "writing a cover letter for a job application",
+  "n_turns": 5,
+  "persona": "a product manager at a startup",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0290/s0",
+  "topic": "Renting an apartment",
+  "brief": "leases, landlords and rent",
+  "n_turns": 6,
+  "persona": "a product manager at a startup",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "recommendation: asks what they should pick or do in their situation",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0291/s1",
+  "topic": "SQL queries",
+  "brief": "writing and fixing SQL queries",
+  "n_turns": 5,
+  "persona": "a product manager at a startup",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0291/s2",
+  "topic": "Back pain",
+  "brief": "lower back pain and posture",
+  "n_turns": 6,
+  "persona": "a product manager at a startup",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "recommendation: asks what they should pick or do in their situation",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0291/s3",
+  "topic": "Indian income tax",
+  "brief": "Indian income tax filing and regimes",
+  "n_turns": 5,
+  "persona": "a product manager at a startup",
+  "style": "short and direct, mostly lowercase, skips punctuation sometimes",
+  "question_type": "how-to: wants step-by-step instructions to do something",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0292/s0",
+  "topic": "Essay writing",
+  "brief": "structuring and writing essays",
+  "n_turns": 6,
+  "persona": "a PhD researcher",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0294/s0",
+  "topic": "Running training",
+  "brief": "training for a run or race",
+  "n_turns": 6,
+  "persona": "a product manager at a startup",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "brainstorming: wants ideas or options to choose from",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0295/s1",
+  "topic": "Protein and nutrition",
+  "brief": "diet, macros and protein intake",
+  "n_turns": 6,
+  "persona": "a PhD researcher",
+  "style": "casual, the occasional typo, writes the way people text",
+  "question_type": "comparison: deciding between two or three specific options",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0296/s2",
+  "topic": "Python errors",
+  "brief": "debugging a Python traceback or exception",
+  "n_turns": 3,
+  "persona": "a backend software engineer",
+  "style": "gives a few lines of background about their situation before asking",
+  "question_type": "how-to: wants step-by-step instructions to do something",
+  "tier": "medium"
+ },
+ {
+  "id": "synth-0298/s2",
+  "topic": "Essay writing",
+  "brief": "structuring and writing essays",
+  "n_turns": 4,
+  "persona": "a freelance designer",
+  "style": "polite, full sentences, but not formal",
+  "question_type": "explanation: wants to understand why or how something works",
+  "tier": "medium"
+ }
+]

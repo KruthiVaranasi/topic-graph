@@ -111,7 +111,8 @@ def export(chats: list[SyntheticChat], out_dir: str | Path, seed: int = 7,
         else:
             gemini.extend(gemini_activities(chat, start))
             key = f"gemini:{session_id(start)}"
-        truth[key] = dict(chat.truth(), synth_id=chat.id, tool=chat.tool, persona=chat.persona, style=chat.style)
+        truth[key] = dict(chat.truth(), synth_id=chat.id, tool=chat.tool, persona=chat.persona, style=chat.style,
+                          **({"meta": chat.meta} if chat.meta else {}))
 
     def write(path: Path, data) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
