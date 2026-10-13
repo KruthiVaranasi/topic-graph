@@ -1,0 +1,25 @@
+{"id": "synth-0095/s1", "message": "ok good to know. diff question, have 2 offers as a ux designer. A is 92k at a 40 person startup w equity (0.1%), B is 105k at a big bank, no equity. which is better"}
+{"id": "synth-0095/s2", "message": "moved out 5 weeks ago, landlord still hasnt returned my 1800 deposit. emailed twice no reply. im in california, la"}
+{"id": "synth-0095/s3", "message": "ok makes sense thx. btw any ideas for getting a US tourist visa approved? im a freelance designer from brazil, going to nyc for 2 weeks, no job letter obviously"}
+{"id": "synth-0095/s4", "message": "writing a script to draw tangent lines on cubic bezier curves for a design tool. derivative formula i used gives tangents pointing the wrong way at some points. formula: B'(t) = 3(1-t)^2 P0 + 6(1-t)t P1 + 3t^2 P2"}
+{"id": "synth-0095/s5", "message": "ok ill live with that. switching gears, making a bouncing ball animation in js with real physics. ball gains height every bounce instead of losing it. code: vy += g*dt; y += vy*dt; if (y > floor) vy = -vy*0.8"}
+{"id": "synth-0095/s6", "message": "lower back aches by like 3pm every day. work at desk 8+ hrs designing. chair is a cheap ikea one. 31f. no injury, just started getting worse last 2 months"}
+{"id": "synth-0095/s7", "message": "ok will try that. unrelated, sourdough comes out dense and flat every time. starter is 3 weeks old, doubles in like 8 hrs. 75% hydration, bulk 4 hrs at room temp, overnight in fridge, bake 250c dutch oven"}
+{"id": "synth-0095/s8", "message": "random q: need a regex to check phone numbers. they might have spaces, dashes or parens in them. should i use a regex or a library for this"}
+{"id": "synth-0096/s1", "message": "how much should i drink on a 10 mile run in summer. is 16oz every 20 min too much"}
+{"id": "synth-0096/s2", "message": "cool thanks. another thing, going back to work after 4 yrs home w my kids. applying for an office manager job at a dental practice. heres my opening para, pls be honest:\n\n'I am writing to apply for the Office Manager position. Although I have been out of the workforce for four years raising my children, I believe I am still a strong candidate. I am hard working, organized and a fast learner.'"}
+{"id": "synth-0097/s1", "message": "sounds good. totally diff topic, need meal prep ideas for lunches, wfh so i can reheat. dont want sandwiches. high protein ish"}
+{"id": "synth-0097/s2", "message": "need to plan my h1b petition timeline. company says they'll file in the april lottery. im on f1 opt ending july. whats the schedule look like"}
+{"id": "synth-0097/s3", "message": "ok got it. separate thing, landlord in california, do they have to return the deposit within 21 days? moving out end of this month"}
+{"id": "synth-0097/s4", "message": "training for half marathon in feb. easy runs feel hard, hr goes to 165+ even at 6:30/km. max hr ~188. running 4x/wk ~30km total. been like this 2 months"}
+{"id": "synth-0097/s5", "message": "lol ok new shoes it is. oh also how do i write a resume bullet for a migration project i led. we moved about 40 services from a monolith to kubernetes over 9 months, cut deploy time from 50 min to 8 and i was the lead on 3 of the teams"}
+{"id": "synth-0097/s6", "message": "want to relearn calc 1 properly. last took it 12 yrs ago. ~4 hrs/wk, mostly evenings. goal is being comfortable enough to read ml papers. plan?"}
+{"id": "synth-0097/s7", "message": "cool. different subject, relearning classical mechanics for fun, have engineering math background. kleppner & kolenkow vs taylor vs morin. which"}
+{"id": "synth-0097/s8", "message": "ideas to pay down 6k in card debt faster? making 85k a year, have 2 cards. what options besides just cutting spending"}
+{"id": "synth-0098/s1", "message": "nice ill try that. unrelated but got 5k from my summer job, thinking of putting it all in a sip in one small cap fund bc returns look insane. fine right"}
+{"id": "synth-0098/s2", "message": "flying home for christmas, delhi to london. air india direct 780 vs turkish via istanbul 640 vs emirates via dubai 720. which one"}
+{"id": "synth-0098/s3", "message": "k thanks. random q, regex for us zip codes, i have ^\\d{5}(-\\d{4})?$ thats right?"}
+{"id": "synth-0098/s4", "message": "why does sitting hurt my lower back more than standing? shouldnt standing be worse since its more weight on the spine"}
+{"id": "synth-0098/s5", "message": "ok makes sense. different thing, student apartment, 4 roommates, one moved out in sept and stopped paying his share (650/mo). landlord says we all owe full rent bc lease is joint. is that legit? we're in ohio, columbus"}
+{"id": "synth-0098/s6", "message": "do entry level jobs actually negotiate salary or is that a myth"}
+{"id": "synth-0098/s7", "message": "also, why do interviewers ask 'tell me about yourself' first, whats the point"}
