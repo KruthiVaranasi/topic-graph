@@ -12,8 +12,11 @@ the same `complete` method around that vendor's SDK.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import threading
+from pathlib import Path
 from typing import Any, Protocol
 
 
@@ -23,45 +26,112 @@ class LLM(Protocol):
     def complete(self, system: str, prompt: str, schema: dict[str, Any] | None = None) -> str: ...
 
 
+# USD per million tokens (input, output), used for the running cost estimate and budget cap.
+PRICES = {
+    "claude-haiku-5-5": (0.10, 0.50),
+    "claude-sonnet-5-5": (2.00, 10.00),
+    "claude-opus-5-5": (4.00, 20.00),
+}
+ALIASES = {"haiku": "claude-haiku-5-5", "sonnet": "claude-sonnet-5-5", "opus": "claude-opus-5-5"}
+# Models that accept the server-side refusal fallback ("default" form).
+_FALLBACK_MODELS = {"claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5", "claude-fable-5-1"}
+
+
+class BudgetExceeded(RuntimeError):
+    pass
+
+
 class ClaudeLLM:
-    def __init__(self, model: str | None = None, effort: str = "low", max_tokens: int = 16000):
+    """Claude adapter with a spending cap and an on-disk response cache.
+
+    The cache means re-running an eval or a threshold sweep never pays twice
+    for the same prompt. The budget stops the run before the estimated spend
+    passes `budget_usd`.
+    """
+
+    def __init__(self, model: str | None = None, effort: str = "low", max_tokens: int = 2000,
+                 budget_usd: float | None = None, cache_path: str | Path | None = None):
         import anthropic
 
         self.client = anthropic.Anthropic()
-        self.model = model or os.environ.get("TOPICGRAPH_MODEL", "claude-opus-5-5")
+        model = model or os.environ.get("TOPICGRAPH_MODEL", "claude-opus-5-5")
+        self.model = ALIASES.get(model, model)
         self.effort = effort
         self.max_tokens = max_tokens
         self.name = self.model
+        self.budget_usd = budget_usd
+        self.input_tokens = self.output_tokens = self.calls = self.cache_hits = 0
+        self._lock = threading.Lock()
+        self.cache_path = Path(cache_path) if cache_path else None
+        self.cache: dict[str, str] = {}
+        if self.cache_path and self.cache_path.exists():
+            for line in self.cache_path.read_text(encoding="utf-8").splitlines():
+                row = json.loads(line)
+                self.cache[row["key"]] = row["text"]
+
+    @property
+    def cost_usd(self) -> float:
+        pin, pout = PRICES.get(self.model, (0.0, 0.0))
+        return (self.input_tokens * pin + self.output_tokens * pout) / 1e6
+
+    def usage(self) -> dict[str, Any]:
+        return {"model": self.model, "calls": self.calls, "cache_hits": self.cache_hits,
+                "input_tokens": self.input_tokens, "output_tokens": self.output_tokens,
+                "estimated_cost_usd": round(self.cost_usd, 4)}
 
     def complete(self, system: str, prompt: str, schema: dict[str, Any] | None = None) -> str:
+        key = hashlib.sha256(json.dumps([self.model, self.effort, system, prompt, schema]).encode()).hexdigest()
+        with self._lock:
+            if key in self.cache:
+                self.cache_hits += 1
+                return self.cache[key]
+            if self.budget_usd is not None and self.cost_usd >= self.budget_usd:
+                raise BudgetExceeded(f"stopped at ${self.cost_usd:.2f}, budget ${self.budget_usd:.2f}")
+
         output_config: dict[str, Any] = {"effort": self.effort}
         if schema is not None:
             output_config["format"] = {"type": "json_schema", "schema": schema}
+        kwargs: dict[str, Any] = {}
+        if self.model in _FALLBACK_MODELS:
+            # On a safety decline, let the API retry on a fallback model.
+            kwargs = {"betas": ["server-side-fallback-2026-07-01"], "fallbacks": "default"}
         response = self.client.beta.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,
             system=system,
             messages=[{"role": "user", "content": prompt}],
             output_config=output_config,
-            # On a safety decline, let the API retry on a fallback model.
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
+            **kwargs,
         )
         if response.stop_reason == "refusal":
             raise RuntimeError(f"model declined the request: {response.stop_details}")
-        return "".join(b.text for b in response.content if b.type == "text")
+        text = "".join(b.text for b in response.content if b.type == "text")
+
+        with self._lock:
+            self.calls += 1
+            self.input_tokens += response.usage.input_tokens
+            self.output_tokens += response.usage.output_tokens
+            self.cache[key] = text
+            if self.cache_path:
+                self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+                with self.cache_path.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps({"key": key, "text": text}) + "\n")
+        return text
 
 
 def complete_json(llm: LLM, system: str, prompt: str, schema: dict[str, Any]) -> Any:
     return json.loads(llm.complete(system, prompt, schema))
 
 
-def get_llm(spec: str | None) -> LLM | None:
-    """`None`/"none" disables LLM steps; "claude" or "claude:<model-id>" selects Claude."""
+def get_llm(spec: str | None, budget_usd: float | None = None, cache_path: str | Path | None = None) -> LLM | None:
+    """`None`/"none" disables LLM steps; "claude" or "claude:<model>" selects Claude.
+
+    <model> is a model id or one of the aliases haiku, sonnet, opus.
+    """
     if not spec or spec == "none":
         return None
     if spec == "claude":
-        return ClaudeLLM()
+        return ClaudeLLM(budget_usd=budget_usd, cache_path=cache_path)
     if spec.startswith("claude:"):
-        return ClaudeLLM(model=spec.split(":", 1)[1])
+        return ClaudeLLM(model=spec.split(":", 1)[1], budget_usd=budget_usd, cache_path=cache_path)
     raise ValueError(f"unknown LLM {spec!r} (use 'none', 'claude' or 'claude:<model-id>')")

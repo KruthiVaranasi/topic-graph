@@ -98,10 +98,23 @@ class LSAEmbedder:
 
 
 class SentenceTransformerEmbedder:
+    """Sentence-BERT embeddings: semantic similarity that survives paraphrase.
+
+    Runs locally after a one-time model download (no API key needed). Vectors
+    are memoized per text, so threshold sweeps encode each message only once.
+    """
+
+    ALIASES = {"minilm": "all-MiniLM-L6-v2", "bge-small": "BAAI/bge-small-en-v1.5", "mpnet": "all-mpnet-base-v2"}
+    _models: dict[str, object] = {}
+    _memo: dict[tuple[str, str], np.ndarray] = {}
+
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         from sentence_transformers import SentenceTransformer
 
-        self.model = SentenceTransformer(model_name)
+        self.model_name = self.ALIASES.get(model_name, model_name)
+        if self.model_name not in self._models:
+            self._models[self.model_name] = SentenceTransformer(self.model_name)
+        self.model = self._models[self.model_name]
 
     def fit(self, texts: Sequence[str]) -> "SentenceTransformerEmbedder":
         return self
@@ -109,7 +122,12 @@ class SentenceTransformerEmbedder:
     def embed(self, texts: Sequence[str]) -> np.ndarray:
         if not texts:
             return np.zeros((0, 1), dtype=np.float32)
-        return _normalize(np.asarray(self.model.encode(list(texts), show_progress_bar=False), dtype=np.float32))
+        missing = list(dict.fromkeys(t for t in texts if (self.model_name, t) not in self._memo))
+        if missing:
+            vecs = np.asarray(self.model.encode(missing, batch_size=64, show_progress_bar=False), dtype=np.float32)
+            for t, v in zip(missing, _normalize(vecs)):
+                self._memo[(self.model_name, t)] = v
+        return np.stack([self._memo[(self.model_name, t)] for t in texts])
 
 
 def get_embedder(name: str = "hashing") -> Embedder:

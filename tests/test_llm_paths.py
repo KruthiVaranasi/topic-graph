@@ -66,3 +66,37 @@ def test_parallel_generation_is_deterministic():
         return [(c.case, c.turns, [(s.start, s.end, s.topic) for s in c.segments]) for c in chats]
 
     assert run(1) == run(6)
+
+
+def test_claude_adapter_budget_and_cache(tmp_path, monkeypatch):
+    import types
+
+    import pytest
+
+    from topicgraph import llm as llm_mod
+
+    calls = []
+
+    class FakeMessages:
+        def create(self, **kw):
+            calls.append(kw)
+            return types.SimpleNamespace(
+                stop_reason="end_turn", stop_details=None,
+                content=[types.SimpleNamespace(type="text", text='{"topic": "x"}')],
+                usage=types.SimpleNamespace(input_tokens=1_000_000, output_tokens=0))
+
+    fake_anthropic = types.SimpleNamespace(Anthropic=lambda: types.SimpleNamespace(beta=types.SimpleNamespace(messages=FakeMessages())))
+    monkeypatch.setitem(__import__("sys").modules, "anthropic", fake_anthropic)
+
+    c = llm_mod.get_llm("claude:haiku", budget_usd=0.15, cache_path=tmp_path / "c.jsonl")
+    assert c.model == "claude-haiku-5-5"
+    c.complete("s", "p1")
+    assert "fallbacks" not in calls[0]  # Haiku has no server-side fallback
+    c.complete("s", "p1")  # cached: no new call
+    assert len(calls) == 1 and c.cache_hits == 1
+    c.complete("s", "p2")  # $0.10 + $0.10 = $0.20 spent
+    with pytest.raises(llm_mod.BudgetExceeded):
+        c.complete("s", "p3")
+    # A new adapter reuses the disk cache for free.
+    again = llm_mod.get_llm("claude:haiku", budget_usd=0.0, cache_path=tmp_path / "c.jsonl")
+    assert again.complete("s", "p2") == '{"topic": "x"}'

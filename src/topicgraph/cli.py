@@ -32,7 +32,9 @@ def _config(args) -> PipelineConfig:
 
 def _add_pipeline_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--embedder", default="hashing", help="hashing (default, no downloads), lsa, st, or st:<model>")
-    p.add_argument("--llm", default="none", help="none (default), claude, or claude:<model-id> for boundary checks and labels")
+    p.add_argument("--llm", default="none", help="none (default), claude, or claude:<model> (haiku, sonnet, opus or a model id) for boundary checks and labels")
+    p.add_argument("--budget-usd", type=float, default=1.0, help="stop LLM calls once the estimated spend reaches this (default $1)")
+    p.add_argument("--llm-cache", default="data/llm-cache.jsonl", help="on-disk cache of LLM responses, so reruns are free")
     p.add_argument("--no-llm-judge", action="store_true", help="use the LLM for labels only")
     p.add_argument("--no-llm-labels", action="store_true", help="use the LLM for boundary checks only")
     p.add_argument("--cluster-threshold", type=float, help="min average cosine similarity to merge topics")
@@ -47,15 +49,17 @@ def cmd_build(args) -> None:
     if not chats:
         sys.exit("no chat exports found under the given paths")
     _log(f"imported {len(chats)} chats")
-    llm = get_llm(args.llm)
+    llm = get_llm(args.llm, args.budget_usd, args.llm_cache)
     graph = build_graph(chats, get_embedder(args.embedder), _config(args), llm,
                         not args.no_llm_judge, not args.no_llm_labels, progress=_log)
+    if llm is not None and hasattr(llm, "usage"):
+        _log(f"LLM usage: {llm.usage()}")
     out = graph.save(args.out)
     summary = graph.summary()
     if args.judge_sample:
         from .evaluation.judge import judge_sample
 
-        judge_llm = get_llm(args.judge_llm or args.llm) or sys.exit("--judge-sample needs --judge-llm or --llm")
+        judge_llm = get_llm(args.judge_llm or args.llm, args.budget_usd, args.llm_cache) or sys.exit("--judge-sample needs --judge-llm or --llm")
         labels = {n.id: n.label for n in graph.nodes}
         result = judge_sample(graph.segments, labels, judge_llm, args.judge_sample)
         (out / "judge.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
@@ -78,8 +82,8 @@ def cmd_synth(args) -> None:
     from .synth.generate import LLMGenerator, LLMTransitions, TemplateGenerator, TemplateTransitions
     from .synth.stitch import build_eval_set
 
-    llm = get_llm(args.llm)
     out = Path(args.out)
+    llm = get_llm(args.llm, args.budget_usd, out / "cache" / "llm.jsonl")
     if llm:
         gen = LLMGenerator(llm, cache_path=out / "cache" / "segments.jsonl")
         transitions = LLMTransitions(llm) if not args.template_transitions else TemplateTransitions()
@@ -119,8 +123,11 @@ def _run_eval(data_dir: Path, args, cfg: PipelineConfig):
         want = 0 if args.split == "tune" else 1
         truth = {k: v for k, v in truth.items() if int(v["synth_id"].split("-")[1]) % 2 == want}
     chats = [c for c in load_exports([data_dir / "exports"]) if c.key in truth]
-    graph = build_graph(chats, get_embedder(args.embedder), cfg, get_llm(args.llm),
+    llm = get_llm(args.llm, args.budget_usd, args.llm_cache)
+    graph = build_graph(chats, get_embedder(args.embedder), cfg, llm,
                         not args.no_llm_judge, not args.no_llm_labels)
+    if llm is not None and hasattr(llm, "usage"):
+        _log(f"LLM usage: {llm.usage()}")
     return graph, score(graph.segments, truth)
 
 
@@ -214,6 +221,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--n", type=int, default=300)
     p.add_argument("--seed", type=int, default=7)
     p.add_argument("--llm", default="none", help="none = offline templates; claude[:model] = LLM-written chats")
+    p.add_argument("--budget-usd", type=float, default=3.0, help="stop once the estimated spend reaches this")
     p.add_argument("--template-transitions", action="store_true", help="cue-phrase transitions even with an LLM")
     p.add_argument("--workers", type=int, default=8, help="parallel LLM calls")
     p.set_defaults(func=cmd_synth)
