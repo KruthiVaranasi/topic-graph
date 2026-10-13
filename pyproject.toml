@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "topicgraph"
+version = "0.1.0"
+description = "Topic Graph for AI chats: split chat exports into topic segments and link them into one cross-tool graph."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+llm = ["anthropic>=1.0"]
+embeddings = ["sentence-transformers>=2.2"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+topicgraph = "topicgraph.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -1,0 +1,10 @@
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.venv/
+build/
+dist/
+# Generated data and outputs: chat content is personal, never commit it.
+data/
+out/
+exports/
