@@ -83,18 +83,23 @@ The report also breaks results down per case, and its import check counts missin
 
 ### Current results
 
-Offline mode (hashing embedder, no LLM). Thresholds were tuned with `--sweep` on seed 7 and scored on a separate held-out set (seed 42, 300 chats, 1,455 segments):
+**Realistic eval set: `evalsets/llm-v1`.** 300 chats and 1,100 segments, written by LLMs following [`WRITING_GUIDE.md`](evalsets/llm-v1/WRITING_GUIDE.md). Each segment was routed by difficulty: 223 simple ones to Claude Haiku, 322 medium ones to Claude Sonnet, and 555 complex or most human-like ones to Claude Opus. Opus then rewrote the 800 topic-switch messages ([`TRANSITION_GUIDE.md`](evalsets/llm-v1/TRANSITION_GUIDE.md)). Rebuild the export files with `topicgraph batch assemble --out evalsets/llm-v1`.
 
-| Metric | Result | Target |
-|---|---|---|
-| Topic recall | 0.894 | ≥ 0.90 (just short) |
-| Topic precision | 0.887 | ≥ 0.80 ✓ |
-| Boundary F1 | 0.733 (P 0.62, R 0.90) | ≥ 0.75 (just short) |
-| Hidden recall | 0.878 | |
-| One-turn recall | 0.640 | |
-| Import check | 0 missing chats, 0 turn mismatches | |
+Thresholds were tuned on the even-numbered chats (`--split tune`) and scored on the odd-numbered ones (`--split test`). Offline mode only: no LLM in the pipeline.
 
-Read these as a **plumbing baseline, not a product claim**. Template chats reuse a small vocabulary per topic, which suits a lexical embedder. The numbers to quote come from LLM-generated chats (`synth --llm`), ideally scored with a pipeline run on a different model family. The current errors are mostly false cuts inside a topic (boundary precision 0.62) and missed one-turn asides. Those are the cases the `st` embedder and the LLM judge are meant to fix.
+| Metric (test half, 150 chats) | Hashing embedder | LSA embedder | Target |
+|---|---|---|---|
+| Topic recall | 0.603 | 0.494 | ≥ 0.90 |
+| Topic precision | 0.655 | **0.839** ✓ | ≥ 0.80 |
+| Boundary F1 | 0.561 | 0.621 | ≥ 0.75 |
+| Hidden recall | 0.597 | 0.472 | |
+| One-turn recall | 0.400 | 0.280 | |
+
+LSA settings: `--embedder lsa --low 0.08 --mid 0.17 --high 0.44 --merge 0.3 --cluster-threshold 0.35`. This is the configuration that follows the product rule (best recall with precision ≥ 0.80). The hashing column shows the best recall/precision balance, because no hashing setting reaches the precision floor.
+
+**What this says.** Word-based methods plateau well short of the recall target on realistic chats. People don't repeat keywords, so one topic gets split across many nodes: 241 predicted nodes for 40 true topics. That is a recall failure, because a user opening one node misses the others. Loosening the clustering merges unrelated topics and breaks the precision floor. Closing the gap needs semantic similarity: a sentence-embedding model (`--embedder st`, local after a one-time download, which this build environment blocks) and/or the LLM boundary judge and labels (`--llm`). Those are the next experiments.
+
+For comparison, the offline template set (`topicgraph synth`, no LLM) scores recall 0.894, precision 0.887 and boundary F1 0.733. Template chats reuse a small vocabulary per topic, so treat them as a plumbing test only.
 
 ## Using a different model family
 

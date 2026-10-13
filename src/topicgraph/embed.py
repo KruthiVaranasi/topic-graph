@@ -72,13 +72,22 @@ class LSAEmbedder:
         self.k = k
         self.components: np.ndarray | None = None
 
+    _cache: dict[tuple, tuple] = {}
+
     def fit(self, texts: Sequence[str]) -> "LSAEmbedder":
+        # Fitting is deterministic, so repeated runs on the same corpus (threshold
+        # sweeps) reuse the result instead of recomputing the decomposition.
+        key = (self.base.dim, self.k, hash(tuple(texts)))
+        if key in LSAEmbedder._cache:
+            self.base.idf, self.components = LSAEmbedder._cache[key]
+            return self
         self.base.fit(texts)
         x = self.base.embed(texts)
         # Eigenvectors of X^T X are the right singular vectors of X.
         vals, vecs = np.linalg.eigh((x.T @ x).astype(np.float64))
         order = np.argsort(vals)[::-1][: self.k]
         self.components = vecs[:, order].astype(np.float32)
+        LSAEmbedder._cache[key] = (self.base.idf, self.components)
         return self
 
     def embed(self, texts: Sequence[str]) -> np.ndarray:

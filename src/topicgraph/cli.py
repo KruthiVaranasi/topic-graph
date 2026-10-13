@@ -167,8 +167,12 @@ def cmd_eval(args) -> None:
             _log(f"low {low:.2f} mid {mid:.2f} merge {mg} cluster {ct:.2f}: recall {m['topic_recall']:.3f} "
                  f"precision {m['topic_precision']:.3f} boundaryF1 {m['boundary']['f1']:.3f}")
         # Recall first, subject to the precision floor.
-        ok = [r for r in rows if r[5] >= 0.80] or rows
-        best = max(ok, key=lambda r: (r[4], r[6]))
+        ok = [r for r in rows if r[5] >= 0.80]
+        if ok:
+            best = max(ok, key=lambda r: (r[4], r[6]))
+        else:
+            _log("no setting reaches the 0.80 precision floor; picking the best recall/precision balance (F1)")
+            best = max(rows, key=lambda r: 2 * r[4] * r[5] / ((r[4] + r[5]) or 1))
         merge_flag = f" --merge {best[2]}" if best[2] is not None else ""
         print(f"best (max recall with precision >= 0.80): --low {best[0]} --mid {best[1]}{merge_flag} "
               f"--cluster-threshold {best[3]}  recall {best[4]:.3f} precision {best[5]:.3f} boundaryF1 {best[6]:.3f}")
