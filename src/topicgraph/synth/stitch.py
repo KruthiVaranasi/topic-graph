@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 
 from .generate import PERSONAS, STYLES, Exchange, SegmentGenerator, TemplateTransitions, TransitionRewriter
@@ -83,28 +84,38 @@ def plan_chat(case: str, rng: random.Random) -> list[tuple[Topic, int]]:
     raise ValueError(case)
 
 
-def stitch_chat(
-    chat_id: str,
-    case: str,
-    generator: SegmentGenerator,
-    rng: random.Random,
-    transitions: TransitionRewriter | None = None,
-) -> SyntheticChat:
-    transitions = transitions or TemplateTransitions()
+@dataclass
+class _ChatPlan:
+    id: str
+    case: str
+    persona: str
+    style: str
+    segments: list[tuple[Topic, int, int]]  # (topic, n_turns, seed)
+    transition_seeds: list[int]
+
+
+def _plan(chat_id: str, case: str, rng: random.Random) -> _ChatPlan:
     persona, style = rng.choice(PERSONAS), rng.choice(STYLES)
+    segs = [(t, n, rng.randrange(2**31)) for t, n in plan_chat(case, rng)]
+    return _ChatPlan(chat_id, case, persona, style, segs, [rng.randrange(2**31) for _ in segs[1:]])
+
+
+def _assemble(plan: _ChatPlan, parts: list[list[Exchange]], transitions: TransitionRewriter, pool) -> SyntheticChat:
     turns: list[Exchange] = []
     segments: list[TruthSegment] = []
-    for topic, n in plan_chat(case, rng):
-        exchanges = list(generator.generate(topic, n, persona, style, rng))
-        if turns:
-            # Rewrite only the user side of the first turn after the boundary,
-            # so it stays on the new topic's side.
-            user, assistant = exchanges[0]
-            exchanges[0] = (transitions.rewrite(turns[-1], user, rng), assistant)
+    for (topic, _, _), exchanges in zip(plan.segments, parts):
         start = len(turns)
         turns.extend(exchanges)
         segments.append(TruthSegment(start, len(turns), topic.id))
-    return SyntheticChat(chat_id, case, _title(turns[0][0]), turns, segments, persona=persona, style=style)
+    # Rewrite only the user side of the first turn after each boundary, so it
+    # stays on the new topic's side and ground truth remains valid.
+    jobs = [
+        (seg.start, pool.submit(transitions.rewrite, turns[seg.start - 1], turns[seg.start][0], random.Random(seed)))
+        for seg, seed in zip(segments[1:], plan.transition_seeds)
+    ]
+    for idx, fut in jobs:
+        turns[idx] = (fut.result(), turns[idx][1])
+    return SyntheticChat(plan.id, plan.case, _title(turns[0][0]), turns, segments, persona=plan.persona, style=plan.style)
 
 
 def build_eval_set(
@@ -114,9 +125,16 @@ def build_eval_set(
     mix: dict[str, float] | None = None,
     transitions: TransitionRewriter | None = None,
     progress=None,
+    workers: int = 1,
 ) -> list[SyntheticChat]:
+    """Plan every chat from one seeded RNG, then generate segments (in parallel when workers > 1).
+
+    Each segment gets its own seed at planning time, so the output does not
+    depend on the order in which parallel calls finish.
+    """
     rng = random.Random(seed)
     mix = mix or DEFAULT_MIX
+    transitions = transitions or TemplateTransitions()
     cases: list[str] = []
     for case, share in mix.items():
         cases += [case] * round(n_chats * share)
@@ -124,9 +142,16 @@ def build_eval_set(
         cases.append("clean")
     cases = cases[:n_chats]
     rng.shuffle(cases)
-    chats = []
-    for i, case in enumerate(cases):
-        chats.append(stitch_chat(f"synth-{i:04d}", case, generator, rng, transitions))
-        if progress and (i + 1) % 25 == 0:
-            progress(f"generated {i + 1}/{n_chats} chats")
+    plans = [_plan(f"synth-{i:04d}", case, rng) for i, case in enumerate(cases)]
+
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        futures = [
+            [pool.submit(generator.generate, t, n, p.persona, p.style, random.Random(s)) for t, n, s in p.segments]
+            for p in plans
+        ]
+        chats = []
+        for i, (plan, futs) in enumerate(zip(plans, futures)):
+            chats.append(_assemble(plan, [f.result() for f in futs], transitions, pool))
+            if progress and (i + 1) % 25 == 0:
+                progress(f"generated {i + 1}/{n_chats} chats")
     return chats

@@ -2,7 +2,7 @@
 
 `HashingEmbedder` needs only numpy and runs anywhere, which keeps the tool
 local and the tests fast. `SentenceTransformerEmbedder` gives much better
-semantic similarity (synonyms, paraphrase, Hinglish) and is the recommended
+semantic similarity (synonyms, paraphrase) and is the recommended
 choice for real exports; it downloads the model once and then runs offline.
 """
 

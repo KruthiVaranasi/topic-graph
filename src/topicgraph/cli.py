@@ -84,7 +84,8 @@ def cmd_synth(args) -> None:
         transitions = LLMTransitions(llm) if not args.template_transitions else TemplateTransitions()
     else:
         gen, transitions = TemplateGenerator(), TemplateTransitions()
-    chats = build_eval_set(args.n, gen, seed=args.seed, transitions=transitions, progress=_log)
+    chats = build_eval_set(args.n, gen, seed=args.seed, transitions=transitions, progress=_log,
+                           workers=args.workers if llm else 1)
     truth = export(chats, out, seed=args.seed)
     (out / "chats.jsonl").write_text(
         "\n".join(json.dumps({"id": c.id, "tool": c.tool, "case": c.case, "title": c.title, "turns": c.turns},
@@ -181,6 +182,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--seed", type=int, default=7)
     p.add_argument("--llm", default="none", help="none = offline templates; claude[:model] = LLM-written chats")
     p.add_argument("--template-transitions", action="store_true", help="cue-phrase transitions even with an LLM")
+    p.add_argument("--workers", type=int, default=8, help="parallel LLM calls")
     p.set_defaults(func=cmd_synth)
 
     p = sub.add_parser("eval", help="run the pipeline on a synthetic set and score it")

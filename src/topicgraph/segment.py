@@ -24,7 +24,7 @@ from .text import content_tokens
 CUES = re.compile(
     r"^\W*(unrelated|on a different note|different (question|topic)|another (question|thing)|"
     r"switching (gears|topics?)|changing (the )?topic|side (note|question)|btw|by the way|"
-    r"also[,:]|quick (question|one)|random (question|q)|new (question|topic)|ek aur (cheez|sawal|baat))",
+    r"also[,:]|quick (question|one)|random (question|q)|new (question|topic))",
     re.I,
 )
 

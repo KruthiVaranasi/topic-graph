@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import random
+import threading
 from pathlib import Path
 from typing import Protocol
 
@@ -26,11 +27,25 @@ PERSONAS = [
     "a freelance designer",
 ]
 STYLES = [
-    "short and terse, lowercase, few details",
-    "detailed, gives context about their situation",
-    "casual with small typos",
-    "Hinglish: mixes Hindi and English in Latin script, e.g. 'yaar ye error kyu aa raha hai'",
-    "formal and polite",
+    "short and direct, mostly lowercase, skips punctuation sometimes",
+    "gives a few lines of background about their situation before asking",
+    "casual, the occasional typo, writes the way people text",
+    "a bit frustrated because a first attempt did not work",
+    "polite, full sentences, but not formal",
+]
+# The kinds of things people actually ask assistants. One is picked per segment
+# so the set covers all of them.
+QUESTION_TYPES = [
+    "how-to: wants step-by-step instructions to do something",
+    "troubleshooting: something is broken or not working and they describe what they see",
+    "explanation: wants to understand why or how something works",
+    "comparison: deciding between two or three specific options",
+    "recommendation: asks what they should pick or do in their situation",
+    "planning: wants help putting together a plan or schedule",
+    "quick fact: a short factual question, then a follow-up or two",
+    "feedback: pastes or describes their own draft, numbers or idea and asks for review",
+    "brainstorming: wants ideas or options to choose from",
+    "sanity check: already has an answer in mind and wants it confirmed",
 ]
 
 Exchange = tuple[str, str]  # (user message, assistant reply)
@@ -51,18 +66,12 @@ _USER_STEMS = [
     "{a} vs {b} — which matters more here?",
     "any tips on {a}? also confused about {b}",
 ]
-_HINGLISH_STEMS = [
-    "yaar {a} ka kya scene hai, {b} ke saath?",
-    "{a} samajh nahi aa raha, {b} bhi confuse kar raha hai",
-    "mujhe {a} ke liye {b} chahiye kya?",
-]
 _FOLLOWUPS = [
     "thanks! can you make that shorter?",
     "ok and then?",
     "got it, thank you",
     "can you give an example?",
     "hmm, why?",
-    "ok samajh gaya, aur?",
 ]
 _ANSWER = [
     "Good question. With {a}, the key thing is how it interacts with {b}.",
@@ -85,8 +94,7 @@ class TemplateGenerator:
                 user = rng.choice(_FOLLOWUPS)
             else:
                 a, b = rng.sample(kw, 2)
-                stems = _HINGLISH_STEMS if style.startswith("Hinglish") and rng.random() < 0.7 else _USER_STEMS
-                user = rng.choice(stems).format(a=a, b=b)
+                user = rng.choice(_USER_STEMS).format(a=a, b=b)
                 if style.startswith("short"):
                     user = user.lower().rstrip("?")
             a, b, c = rng.sample(kw, 3)
@@ -100,10 +108,20 @@ class LLMGenerator:
     """Writes realistic exchanges with an LLM. Results are cached on disk so reruns are free."""
 
     SYSTEM = (
-        "You write realistic transcripts of people chatting with an AI assistant, for testing software. "
-        "Stay strictly on the given topic for the whole exchange: no greetings that change subject, "
-        "no tangents. Make the user sound like the persona and style given. Assistant replies should "
-        "read like a real assistant: helpful, 40 to 150 words, sometimes with short lists or code."
+        "You write realistic transcripts of a real person chatting with an AI assistant. They are test "
+        "data for software that detects topic changes in chat histories, so they must read like logs "
+        "from a real product, not like polished examples.\n\n"
+        "The user:\n"
+        "- Writes like an ordinary person typing quickly: not polished, not textbook phrasing, no "
+        "greetings, does not thank the assistant every turn.\n"
+        "- Is not vague either: the first message has enough concrete detail (a version, an amount, "
+        "a city, a date, an error line, what they already tried) that a reader knows what it is about.\n"
+        "- Varies message length: some are a few words, some are several sentences.\n"
+        "- In follow-ups, reacts to the previous answer the way people do: 'that didn't work', "
+        "'what about the second one', 'ok and if I'm on a mac?', and does not restate the whole topic.\n"
+        "- Stays on the given topic for the whole exchange. No tangents, no switching subjects.\n\n"
+        "The assistant replies like a real assistant: helpful and specific, usually 50 to 200 words, "
+        "using short lists, steps or code only when they fit. English only."
     )
     SCHEMA = {
         "type": "object",
@@ -127,6 +145,7 @@ class LLMGenerator:
         self.name = f"llm:{llm.name}"
         self.cache_path = Path(cache_path) if cache_path else None
         self.cache: dict[str, list[Exchange]] = {}
+        self._lock = threading.Lock()
         if self.cache_path and self.cache_path.exists():
             for line in self.cache_path.read_text(encoding="utf-8").splitlines():
                 row = json.loads(line)
@@ -137,22 +156,23 @@ class LLMGenerator:
         key = hashlib.sha1(f"{self.llm.name}|{topic.id}|{n_turns}|{persona}|{style}|{variant}".encode()).hexdigest()
         if key in self.cache:
             return self.cache[key]
-        angle = rng.choice(["a beginner question", "a specific problem they are stuck on", "planning ahead",
-                            "comparing two options", "a follow-up after trying something that failed"])
+        qtype = rng.choice(QUESTION_TYPES)
         prompt = (
             f"Topic: {topic.name} ({topic.brief}).\n"
-            f"User persona: {persona}. Writing style: {style}. Angle: {angle}.\n"
-            f"Write exactly {n_turns} user/assistant exchange(s). Later user messages may be short follow-ups."
+            f"User: {persona}. Writing style: {style}.\n"
+            f"Kind of question: {qtype}.\n"
+            f"Write exactly {n_turns} user/assistant exchange(s)."
         )
         turns = complete_json(self.llm, self.SYSTEM, prompt, self.SCHEMA)["turns"][:n_turns]
         result = [(t["user"].strip(), t["assistant"].strip()) for t in turns]
         if len(result) < n_turns:
             raise RuntimeError(f"generator returned {len(result)} turns, wanted {n_turns}")
-        self.cache[key] = result
-        if self.cache_path:
-            self.cache_path.parent.mkdir(parents=True, exist_ok=True)
-            with self.cache_path.open("a", encoding="utf-8") as f:
-                f.write(json.dumps({"key": key, "turns": result}, ensure_ascii=False) + "\n")
+        with self._lock:
+            self.cache[key] = result
+            if self.cache_path:
+                self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+                with self.cache_path.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps({"key": key, "turns": result}, ensure_ascii=False) + "\n")
         return result
 
 
@@ -161,7 +181,7 @@ class TransitionRewriter(Protocol):
 
 
 _CUES = ["Unrelated, but ", "btw, ", "Switching gears — ", "Different question: ", "Also, ", "Random q: ",
-         "Ek aur cheez, "]
+         "oh also ", "Another thing — "]
 
 
 class TemplateTransitions:
@@ -180,9 +200,10 @@ class TemplateTransitions:
 class LLMTransitions:
     SYSTEM = (
         "You edit one user message in an AI-assistant chat so the topic switch reads naturally, the way "
-        "people really switch topics mid-chat (e.g. 'unrelated, but…', 'oh also', or no signal at all). "
-        "The message must stay entirely about its own subject: do not mention or continue the previous "
-        "topic. Keep the user's language and style. Reply with the edited message only."
+        "people really switch topics mid-chat: sometimes a signal like 'unrelated, but…', 'oh also', "
+        "'different question', and often no signal at all, just the new question. Change as little as "
+        "needed. The message must stay entirely about its own subject: do not mention or continue the "
+        "previous topic. Keep the user's style. English only. Reply with the edited message only."
     )
     SCHEMA = {
         "type": "object",

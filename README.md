@@ -65,7 +65,7 @@ What `synth` builds:
 
 - 40 topics across coding, career, travel, health, finance, cooking, study and life, with 10 deliberate near-neighbour pairs (Python errors vs. Python packaging, Schengen vs. US visa, …) in `synth/topics.py`.
 - The case mix from the spec: 40% clean switches, 20% near-neighbours, 15% returns to an earlier topic, 15% one-turn asides, 10% single-topic chats.
-- Personas and styles, including Hinglish. Each chat is titled from its first segment, like ChatGPT.
+- Personas, writing styles and 10 question types (how-to, troubleshooting, explanation, comparison, recommendation, planning, quick fact, feedback, brainstorming, sanity check), written to read like real users: not polished, not vague. English only. Each chat is titled from its first segment, like ChatGPT.
 - A transition rewrite at every boundary that changes only the user side of the first turn after the cut, so ground truth stays valid.
 - Real export formats for all three tools plus `truth.json`, so every eval also tests the importers.
 

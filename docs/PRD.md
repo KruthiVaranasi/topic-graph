@@ -59,7 +59,7 @@ The eval set is generated, not hand-labelled: we build drifting chats ourselves,
 How the set is built:
 
 1. **Define a topic list.** About 40 topics typical of assistant use (coding, career, travel, health, finance, cooking, study), with a few near-neighbours on purpose (Python errors vs. Python packaging).
-2. **Generate single-topic segments.** An LLM writes short user–assistant exchanges for each topic, 2–8 turns, in varied personas and styles, including Hinglish.
+2. **Generate single-topic segments.** An LLM writes short user–assistant exchanges for each topic, 2–8 turns, in varied personas, writing styles and question types (how-to, troubleshooting, comparison, planning, feedback and more). English only for the MVP.
 3. **Stitch segments into chats.** Combine 2–5 segments per chat. Every boundary position and topic label is saved as ground truth. The chat title is taken from the first segment, mimicking ChatGPT.
 4. **Add realistic transitions.** An LLM rewrites the turn at each boundary so the switch reads naturally ("unrelated, but…"), without changing which side of the boundary each turn is on.
 5. **Spread chats across tools.** Format outputs as ChatGPT, Claude and Gemini exports, so the importer is tested too.

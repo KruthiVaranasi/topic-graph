@@ -55,3 +55,14 @@ def test_llm_generator_caches(tmp_path):
 def test_llm_transitions():
     msg = LLMTransitions(FakeLLM()).rewrite(("u", "a"), "visa question", random.Random(0))
     assert msg == "oh also, visa question"
+
+
+def test_parallel_generation_is_deterministic():
+    from topicgraph.synth.stitch import build_eval_set
+
+    def run(workers):
+        llm = FakeLLM()
+        chats = build_eval_set(20, LLMGenerator(llm), seed=3, transitions=LLMTransitions(llm), workers=workers)
+        return [(c.case, c.turns, [(s.start, s.end, s.topic) for s in c.segments]) for c in chats]
+
+    assert run(1) == run(6)
