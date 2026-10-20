@@ -19,6 +19,9 @@ from .models import Chat, Edge, Segment, TopicNode, Turn
 from .segment import LLMBoundaryJudge, SegmenterConfig, segment_chat
 
 
+SEARCH_INDEX = "search_index.npy"
+
+
 @dataclass
 class PipelineConfig:
     segmenter: SegmenterConfig = field(default_factory=SegmenterConfig)
@@ -31,6 +34,8 @@ class TopicGraph:
     segments: list[Segment]
     nodes: list[TopicNode]
     edges: list[Edge]
+    vectors: np.ndarray | None = None  # one row per segment, reused by `search`
+    embedder_name: str | None = None
 
     @property
     def hidden_topic_rate(self) -> float:
@@ -54,6 +59,7 @@ class TopicGraph:
             "hidden_topic_rate": round(self.hidden_topic_rate, 4),
             "hidden_segment_share": round(self.hidden_segment_share, 4),
             "sources": dict(Counter(s.source for s in self.segments)),
+            "embedder": self.embedder_name,
         }
 
     def to_dict(self) -> dict[str, Any]:
@@ -72,6 +78,10 @@ class TopicGraph:
         data = self.to_dict()
         (out / "graph.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
         (out / "index.html").write_text(render_html(data), encoding="utf-8")
+        # Dense vectors are small (384 numbers per segment), so search can reuse them instead of
+        # re-embedding the whole history for every query. Hashing vectors (4,096 wide) are cheap to rebuild.
+        if self.vectors is not None and self.embedder_name and self.vectors.shape[1] <= 1024:
+            np.save(out / SEARCH_INDEX, self.vectors.astype(np.float16))
         return out
 
 
@@ -122,6 +132,7 @@ def build_graph(
         s.label = label
 
     vecs = segment_vectors(segments, turns_by_chat, embedder, cfg.segmenter.user_weight)
+    search_vecs = vecs
     if isinstance(labeler, LLMLabeler) and segments:
         # LLM labels are a strong, compact topic signal; blend them in.
         lv = embedder.embed([s.label for s in segments])
@@ -153,7 +164,7 @@ def build_graph(
             )
         )
 
-    return TopicGraph(segments, nodes, build_edges(segments, cfg.min_edge_weight))
+    return TopicGraph(segments, nodes, build_edges(segments, cfg.min_edge_weight), vectors=search_vecs)
 
 
 def build_edges(segments: list[Segment], min_weight: int = 1) -> list[Edge]:
@@ -174,12 +185,19 @@ def build_edges(segments: list[Segment], min_weight: int = 1) -> list[Edge]:
     return sorted(edges, key=lambda e: (-e.weight, e.kind, e.source, e.target))
 
 
-def search(graph_json: dict[str, Any], query: str, embedder: Embedder | None = None, k: int = 10) -> list[dict[str, Any]]:
-    """Rank saved segments against a query: "have I solved this before?"."""
+def search(graph_json: dict[str, Any], query: str, embedder: Embedder | None = None, k: int = 10,
+           vectors: np.ndarray | None = None) -> list[dict[str, Any]]:
+    """Rank saved segments against a query: "have I solved this before?".
+
+    With `vectors` (saved at build time) only the query is embedded; otherwise every segment is re-embedded.
+    """
     embedder = embedder or HashingEmbedder()
     segs = graph_json["segments"]
-    embedder.fit([s["text"] for s in segs])
-    m = embedder.embed([s["text"] for s in segs])
+    if vectors is not None and len(vectors) == len(segs):
+        m = vectors.astype(np.float32)
+    else:
+        embedder.fit([s["text"] for s in segs])
+        m = embedder.embed([s["text"] for s in segs])
     q = embedder.embed([query])[0]
     scores = m @ q
     order = np.argsort(-scores)[:k]

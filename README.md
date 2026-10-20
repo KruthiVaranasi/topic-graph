@@ -7,7 +7,8 @@ The full product spec (problem, users, metrics, eval design, risks) is in [`docs
 ## Quick start
 
 ```bash
-pip install -e ".[dev]"            # numpy is the only runtime dependency
+pip install -e ".[embeddings]"     # recommended: Sentence-BERT, runs locally after a one-time model download
+# pip install -e .                 # numpy only: works anywhere, but finds topics far less well
 
 # 1. Build the graph from your exports (files or folders, any mix of tools)
 topicgraph build ~/Downloads/chatgpt-export ~/Downloads/claude-export ~/Downloads/Takeout --out out
@@ -29,9 +30,9 @@ Gemini's Takeout has no conversation ids, so chats are rebuilt as sessions: prom
 
 ## Privacy
 
-By default everything runs on your machine: the embedder is pure numpy, and the viewer is a single HTML file with no CDN or network calls. Chat content never leaves the computer.
+By default everything runs on your machine: the embedder (Sentence-BERT, or the numpy-only hashing embedder) runs locally, and the viewer is a single HTML file with no CDN or network calls. Chat content never leaves the computer.
 
-`--llm claude` is opt-in and **sends segment text to the Anthropic API** for boundary checks and topic names. It gives better results but breaks the "nothing leaves the machine" guarantee, so use it knowingly (or only on the synthetic eval set). `--embedder st` downloads a sentence-transformers model once, then runs locally.
+`--llm claude` is opt-in and **sends segment text to the Anthropic API** for boundary checks and topic names. It gives better results but breaks the "nothing leaves the machine" guarantee, so use it knowingly (or only on the synthetic eval set). Sentence-BERT downloads its model once (no chat content is sent), then runs offline.
 
 ## How it works
 
@@ -45,6 +46,8 @@ exports ──► import ──► segment ──► label ──► cluster ─
 3. **Label** (`label.py`): top TF-IDF keywords offline, or a 2–5 word name from the LLM.
 4. **Cluster** (`cluster.py`): average-linkage agglomerative clustering over segment vectors (plus label vectors when LLM labels exist), stopping at a similarity threshold, so the number of topics is not fixed in advance.
 5. **Graph** (`pipeline.py`, `viewer.py`): nodes are topics; `cooccur` edges join topics that share a chat and `follows` edges join a topic to the one that came right after it. Clicking a node lists its segments with tool, date, chat title, turn range and a link back to the chat. Segments that are not the chat's opening topic are tagged **hidden**: a title-based organizer cannot find them.
+
+`build` picks Sentence-BERT when it is installed (`--embedder auto`) with the thresholds tuned for it, and saves a search index next to the graph, so `search` answers in milliseconds instead of re-reading the whole history.
 
 `build` prints the **hidden-topic rate**: the share of topic nodes that never open a chat, so they live only under other titles.
 
@@ -95,14 +98,27 @@ Thresholds were tuned on the even-numbered chats (`--split tune`) and scored on 
 | Hidden recall | 0.597 | 0.472 | **0.736** | |
 | One-turn recall | 0.400 | 0.280 | **0.680** | |
 
-Best settings (chosen on the tune half by the product rule: maximum recall with precision ≥ 0.80):
+Best settings (chosen on the tune half by the product rule: maximum recall with precision ≥ 0.80; these are now the defaults for each embedder):
 - SBERT: `--embedder st:minilm --low 0.15 --mid 0.28 --high 0.67 --cluster-threshold 0.35`
 - LSA: `--embedder lsa --low 0.08 --mid 0.17 --high 0.44 --merge 0.3 --cluster-threshold 0.35`
 - Hashing: the best recall/precision balance (`--low 0.02 --mid 0.05 --high 0.14 --cluster-threshold 0.10`), because no hashing setting reaches the precision floor.
 
 **What this says.** Word-based methods plateau on realistic chats because people don't repeat keywords. Sentence-BERT matches meaning, and it still runs locally and for free after a one-time model download. It now **passes the boundary target (0.83) and the precision floor (0.82)**, and lifts recall from 0.49–0.60 to 0.75. The remaining recall gap is mostly topics split across more than one node (128 predicted nodes for 40 true topics). The next steps are a larger embedding model, a second clustering pass that merges nodes with similar labels, or the optional LLM labels (`--llm claude:haiku --budget-usd 1`).
 
-For comparison, the offline template set (`topicgraph synth`, no LLM) scores recall 0.894, precision 0.887 and boundary F1 0.733. Template chats reuse a small vocabulary per topic, so treat them as a plumbing test only.
+For comparison, the offline template set (`topicgraph synth`, then `eval --embedder hashing`) scores recall 0.957, precision 0.911 and boundary F1 0.758. Template chats reuse a small vocabulary per topic, so treat them as a plumbing test only.
+
+### Can a user find the chat?
+
+The segment metrics score the pipeline; the user's job is "find the chat where I discussed X". [`docs/EVALUATION.md`](docs/EVALUATION.md) tests that job on the same 150 test chats, with queries worded the way people remember a topic rather than the words they typed:
+
+| How the user looks | Chats hidden under another title, found |
+|---|---|
+| Chat titles | 0% |
+| Keyword search, all words must match (like the apps' own search) | 16% |
+| Topic Graph search | 74% |
+| Topic Graph, opening the top 3 matching topics | 83% |
+
+Plain meaning search over messages finds 78%, so the search gain comes from matching meaning; the graph adds browsing by topic and the cross-tool view. The same page covers build time (Sentence-BERT: 1.7 s per chat on a laptop CPU) and where clustering stops scaling (about 2,000 chats).
 
 ## Using a different model family
 
@@ -119,8 +135,8 @@ src/topicgraph/
   pipeline.py     build_graph, edges, search, save
   viewer.py       offline HTML graph viewer
   synth/          topics, segment generators, stitching, export writers
-  evaluation/     metrics, distribution stats, LLM judge
-  cli.py          build | search | synth | eval | stats
+  evaluation/     metrics, find-the-chat evaluation, distribution stats, LLM judge
+  cli.py          build | search | synth | eval | eval-search | stats
 tests/            importers, pipeline, metrics, LLM paths (with a fake LLM)
 ```
 

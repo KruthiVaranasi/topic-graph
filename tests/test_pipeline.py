@@ -81,6 +81,33 @@ def test_end_to_end_eval_on_template_data(tmp_path):
     assert m["topic_precision"] > 0.7
     assert m["boundary"]["f1"] > 0.6
     out = graph.save(tmp_path / "out")
-    html = (out / "index.html").read_text()
+    html = (out / "index.html").read_text(encoding="utf-8")
     assert "<script src" not in html and "<link" not in html  # fully offline viewer
-    assert json.loads((out / "graph.json").read_text())["summary"]["segments"] == len(graph.segments)
+    assert json.loads((out / "graph.json").read_text(encoding="utf-8"))["summary"]["segments"] == len(graph.segments)
+
+
+def test_search_reuses_saved_vectors_when_given():
+    msgs = [Message("user", "python traceback keyerror in my function"),
+            Message("assistant", "the keyerror traceback means the dict key is missing"),
+            Message("user", "unrelated, but what documents does the schengen visa appointment need?"),
+            Message("assistant", "for a schengen visa appointment bring insurance and itinerary documents")]
+    graph = build_graph([Chat("c1", "Python error", "chatgpt", msgs)])
+    data = graph.to_dict()
+    # Vectors that point every segment the "wrong" way prove search uses them instead of re-embedding.
+    flipped = graph.vectors[::-1].copy()
+    assert search(data, "schengen visa documents", vectors=graph.vectors)[0]["id"] == graph.segments[-1].id
+    assert search(data, "schengen visa documents", vectors=flipped)[0]["id"] == graph.segments[0].id
+
+
+def test_cli_uses_thresholds_tuned_for_the_embedder():
+    import argparse
+
+    from topicgraph.cli import _config
+
+    blank = dict(low=None, mid=None, high=None, merge=None, cluster_threshold=None)
+    st = _config(argparse.Namespace(embedder="st:minilm", **blank))
+    assert (st.segmenter.low, st.segmenter.mid, st.cluster_threshold) == (0.15, 0.28, 0.35)
+    hashing = _config(argparse.Namespace(embedder="hashing", **blank))
+    assert (hashing.segmenter.mid, hashing.cluster_threshold) == (0.08, 0.08)
+    override = _config(argparse.Namespace(embedder="st:minilm", **{**blank, "cluster_threshold": 0.5}))
+    assert override.cluster_threshold == 0.5

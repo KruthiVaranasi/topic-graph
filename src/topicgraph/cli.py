@@ -8,10 +8,10 @@ import json
 import sys
 from pathlib import Path
 
-from .embed import get_embedder
+from .embed import get_embedder, preset_for, resolve_embedder_name
 from .importers import load_exports
 from .llm import get_llm
-from .pipeline import PipelineConfig, build_graph, search
+from .pipeline import SEARCH_INDEX, PipelineConfig, build_graph, search
 from .segment import SegmenterConfig
 
 
@@ -20,18 +20,21 @@ def _log(msg: str) -> None:
 
 
 def _config(args) -> PipelineConfig:
+    """Thresholds tuned for the chosen embedder, with any explicit flags taking precedence."""
+    preset = preset_for(getattr(args, "embedder", "hashing"))
     seg = SegmenterConfig()
     for name in ("low", "mid", "high", "merge"):
-        if getattr(args, name, None) is not None:
-            setattr(seg, name, getattr(args, name))
-    cfg = PipelineConfig(segmenter=seg)
+        value = getattr(args, name, None)
+        setattr(seg, name, value if value is not None else preset[name])
+    cfg = PipelineConfig(segmenter=seg, cluster_threshold=preset["cluster_threshold"])
     if args.cluster_threshold is not None:
         cfg.cluster_threshold = args.cluster_threshold
     return cfg
 
 
 def _add_pipeline_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--embedder", default="hashing", help="hashing (default, no downloads), lsa, st, or st:<model>")
+    p.add_argument("--embedder", default="auto",
+                   help="auto (default: Sentence-BERT if installed, else hashing), hashing (numpy only), lsa, st, or st:<model>")
     p.add_argument("--llm", default="none", help="none (default), claude, or claude:<model> (haiku, sonnet, opus or a model id) for boundary checks and labels")
     p.add_argument("--budget-usd", type=float, default=1.0, help="stop LLM calls once the estimated spend reaches this (default $1)")
     p.add_argument("--llm-cache", default="data/llm-cache.jsonl", help="on-disk cache of LLM responses, so reruns are free")
@@ -52,6 +55,7 @@ def cmd_build(args) -> None:
     llm = get_llm(args.llm, args.budget_usd, args.llm_cache)
     graph = build_graph(chats, get_embedder(args.embedder), _config(args), llm,
                         not args.no_llm_judge, not args.no_llm_labels, progress=_log)
+    graph.embedder_name = args.embedder
     if llm is not None and hasattr(llm, "usage"):
         _log(f"LLM usage: {llm.usage()}")
     out = graph.save(args.out)
@@ -69,8 +73,15 @@ def cmd_build(args) -> None:
 
 
 def cmd_search(args) -> None:
-    data = json.loads(Path(args.graph).read_text(encoding="utf-8"))
-    for hit in search(data, args.query, k=args.k):
+    graph_path = Path(args.graph)
+    data = json.loads(graph_path.read_text(encoding="utf-8"))
+    index, name = graph_path.parent / SEARCH_INDEX, data["summary"].get("embedder")
+    vectors, embedder = None, None
+    if index.exists() and name:
+        import numpy as np
+
+        vectors, embedder = np.load(index), get_embedder(name)
+    for hit in search(data, args.query, embedder=embedder, k=args.k, vectors=vectors):
         when = (hit["timestamp"] or "")[:10]
         print(f"{hit['score']:.2f}  [{hit['source']} {when}] {hit['label']}  — in “{hit['chat_title']}”")
         if hit.get("url"):
@@ -198,6 +209,20 @@ def cmd_stats(args) -> None:
     print(json.dumps(chat_stats(load_exports(args.exports)), indent=1))
 
 
+def cmd_eval_search(args) -> None:
+    from .evaluation.retrieval import evaluate_search
+
+    result = evaluate_search(args.data, args.split, args.embedder)
+    print(f"{result['chats']} chats, {result['queries']} queries; on average {result['avg_relevant_chats_per_topic']} chats "
+          f"per topic, {result['avg_hidden_chats_per_topic']} of them hidden under another title")
+    for name, m in result["methods"].items():
+        print(f"\n{name}")
+        for k, v in m.items():
+            print(f"  {k:28} {v}")
+    if args.out:
+        Path(args.out).write_text(json.dumps(result, indent=1), encoding="utf-8")
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="topicgraph", description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -248,11 +273,23 @@ def main(argv: list[str] | None = None) -> None:
     _add_pipeline_args(p)
     p.set_defaults(func=cmd_eval)
 
+    p = sub.add_parser("eval-search", help="can a user find every chat about a topic? Topic Graph vs titles and keyword search")
+    p.add_argument("--data", default="evalsets/llm-v1")
+    p.add_argument("--split", choices=["all", "tune", "test"], default="test")
+    p.add_argument("--embedder", default="st:minilm")
+    p.add_argument("--out", help="write results JSON here")
+    p.set_defaults(func=cmd_eval_search)
+
     p = sub.add_parser("stats", help="shape statistics for the distribution check")
     p.add_argument("exports", nargs="+")
     p.set_defaults(func=cmd_stats)
 
     args = ap.parse_args(argv)
+    if getattr(args, "embedder", None) == "auto":
+        args.embedder = resolve_embedder_name("auto")
+        if args.embedder == "hashing":
+            _log("sentence-transformers is not installed, so using the hashing embedder; "
+                 "pip install -e '.[embeddings]' gives much better topics")
     args.func(args)
 
 

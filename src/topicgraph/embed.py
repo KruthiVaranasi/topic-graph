@@ -130,6 +130,30 @@ class SentenceTransformerEmbedder:
         return np.stack([self._memo[(self.model_name, t)] for t in texts])
 
 
+# Thresholds tuned per embedder on the even-numbered chats of evalsets/llm-v1 (`eval --sweep --split tune`).
+# Dense embedders score every pair higher, so one set of thresholds cannot serve all of them.
+PRESETS = {
+    "hashing": {"low": 0.02, "mid": 0.08, "high": 0.26, "merge": None, "cluster_threshold": 0.08},
+    "lsa": {"low": 0.08, "mid": 0.17, "high": 0.44, "merge": 0.3, "cluster_threshold": 0.35},
+    "st": {"low": 0.15, "mid": 0.28, "high": 0.67, "merge": None, "cluster_threshold": 0.35},
+}
+
+
+def preset_for(name: str) -> dict:
+    return PRESETS["st" if name.startswith("st") else "lsa" if name.startswith("lsa") else "hashing"]
+
+
+def resolve_embedder_name(name: str) -> str:
+    """'auto' means Sentence-BERT when it is installed (it scored best), otherwise the numpy-only hashing embedder."""
+    if name != "auto":
+        return name
+    try:
+        import sentence_transformers  # noqa: F401
+    except ImportError:
+        return "hashing"
+    return "st:minilm"
+
+
 def get_embedder(name: str = "hashing") -> Embedder:
     if name == "hashing":
         return HashingEmbedder()

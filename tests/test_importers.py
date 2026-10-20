@@ -36,7 +36,7 @@ def test_chatgpt_follows_current_branch(tmp_path):
 
 def test_chatgpt_html(tmp_path):
     p = tmp_path / "chat.html"
-    p.write_text("<html><script>var jsonData = " + json.dumps([_conv_with_branch()]) + ";</script></html>")
+    p.write_text("<html><script>var jsonData = " + json.dumps([_conv_with_branch()]) + ";</script></html>", encoding="utf-8")
     assert detect(p) == "chatgpt"
     assert chatgpt.load(p)[0].title == "Python error"
 
@@ -47,7 +47,7 @@ def test_claude_export(tmp_path):
         {"sender": "assistant", "text": "", "content": [{"type": "text", "text": "sure"}], "created_at": "2025-01-01T10:00:01Z"},
     ]}]
     p = tmp_path / "conversations.json"
-    p.write_text(json.dumps(data))
+    p.write_text(json.dumps(data), encoding="utf-8")
     assert detect(p) == "claude"
     [chat] = claude.load(p)
     assert [t.assistant for t in chat.turns()] == ["sure"]

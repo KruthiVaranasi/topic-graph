@@ -16,7 +16,7 @@ Primary user: heavy AI-assistant users (students, PMs, engineers, researchers) w
 
 | Job | Today | With topic graph |
 |---|---|---|
-| "Find everything I discussed about X" | Keyword search per tool; misses chats titled otherwise | One topic node lists every segment, from every tool |
+| "Find everything I discussed about X" | Keyword search per tool: it searches message text, but only finds the words you typed then. Searching from memory found 16% of chats filed under another title ([evaluation](EVALUATION.md)) | Meaning search finds 74%; one topic node lists every segment, from every tool |
 | "What have I been thinking about lately?" | Scroll a chronological sidebar | See topic clusters and how they grew over time |
 | "Don't make me solve this twice" | Re-ask the assistant | Surface the earlier segment before re-asking |
 
@@ -88,4 +88,6 @@ Keeping the synthetic data honest:
 | Synthetic chats are cleaner than real ones, so scores look too good | Hard-case mix above; report real-data sanity results beside synthetic scores |
 | Chats are deeply personal | Process locally; no upload of chat content |
 | Platforms build native topic views | Cross-tool graph is the defensible part; no single assistant has reason to index its rivals |
+| Meaning search alone solves "find X" | In the evaluation, meaning search over messages found as many hidden chats as Topic Graph search (78% vs 74%). The product's distinct value is browsing by topic and the cross-tool overview, so the viewer should lead with those |
+| A heavy user's first build is slow | Sentence-BERT builds took 1.7 s per chat on a laptop CPU, and clustering grows about 8× per doubling of segments. Show progress, build incrementally, and switch clustering method above ~2,000 chats |
 | Export formats change | Thin importer per tool, covered by the synthetic export tests |

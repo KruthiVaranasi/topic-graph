@@ -6,9 +6,9 @@ from topicgraph.synth import batch
 
 def _fill(out, jobs_glob, write):
     for f in sorted((out / "jobs").glob(jobs_glob)):
-        rows = [write(j) for j in json.loads(f.read_text())]
+        rows = [write(j) for j in json.loads(f.read_text(encoding="utf-8"))]
         sub = "segments" if jobs_glob.startswith("segments") else "transitions"
-        (out / sub / (f.stem + ".jsonl")).write_text("\n".join(json.dumps(r) for r in rows))
+        (out / sub / (f.stem + ".jsonl")).write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
 
 
 def test_batch_roundtrip(tmp_path):
